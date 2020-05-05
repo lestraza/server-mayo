@@ -5,10 +5,23 @@ const cookieParser = require('cookie-parser')
 const path = require('path')
 const uuid = require('uuid').v1
 const fs = require('fs')
+const cors = require('cors')
 
 const multer = require('multer')
 
 require('dotenv').config()
+
+const whitelist = ['http://localhost:3000', 'https://mayo-4215.herokuapp.com']
+
+const corsOptions = {
+    credentials: true,
+    origin: (origin, callback) => {
+        if (whitelist.includes(origin)) return callback(null, true)
+
+        callback(new Error('Not allowed by CORS'))
+    },
+    optionsSuccessStatus: 200,
+}
 
 const app = express()
 const server = require('http').Server(app)
@@ -24,6 +37,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(cookieParser())
 app.use('/static', express.static(__dirname + '/static'))
+app.use(cors(corsOptions))
 
 //Middleware
 const { auth } = require('./middleware/auth')
@@ -141,9 +155,9 @@ app.post('/api/users/saveAvatar', (req, res) => {
     const { avatarUrl } = req.body
     User.findOne({ _id: req.body }, (err, user) => {
         if (user) {
-            if(user.avatarUrl) {
-                fs.unlink(__dirname + '/' + user.avatarUrl, (err)=> {
-                    if(err) {
+            if (user.avatarUrl) {
+                fs.unlink(__dirname + '/' + user.avatarUrl, (err) => {
+                    if (err) {
                         throwError(res, 413, err)
                     }
                 })
@@ -270,7 +284,7 @@ app.post('/api/users/findContact', (req, res) => {
     const { email } = req.body
     User.findOne({ email: email }, (err, user) => {
         if (!user || err) {
-            throwError(res, 403, "Email not found. Try again.")
+            throwError(res, 403, 'Email not found. Try again.')
         } else {
             res.status(200).json({
                 id: user._id,
@@ -407,9 +421,6 @@ app.post('/api/messages/addMessage', (req, res) => {
 })
 
 const port = process.env.PORT || 3006
-// app.listen(port, () => {
-//     console.log(`Server runnig at ${port}`);
-// });
 
 server.listen(port, () => {
     console.log(`Server runnig at ${port}`)
