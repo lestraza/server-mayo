@@ -1,0 +1,8 @@
+/node_modules
+/static
+
+.DS_Store
+
+npm_debug.log*
+yarn_debug.log*
+yarn_error.log*
